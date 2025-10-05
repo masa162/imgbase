@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = 'edge';
+
 const API_URL = "https://img.be2nd.com";
 
 export async function POST(request: NextRequest) {
