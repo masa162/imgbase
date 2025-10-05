@@ -1,4 +1,4 @@
-import { Router } from "itty-router";
+import { Router, type IRequest } from "itty-router";
 
 const textEncoder = new TextEncoder();
 
@@ -17,7 +17,7 @@ interface Env {
   MAX_UPLOAD_BYTES?: string;
 }
 
-type Handler = (request: Request, env: Env, ctx: ExecutionContext) => Promise<Response> | Response;
+type Handler = (request: IRequest, env: Env, ctx: ExecutionContext) => Promise<Response> | Response;
 
 const router = Router();
 let schemaPrepared = false;
@@ -308,7 +308,7 @@ async function ensureSchema(env: Env) {
   schemaPrepared = true;
 }
 
-async function readJson<T>(request: Request): Promise<T> {
+async function readJson<T>(request: IRequest | Request): Promise<T> {
   const text = await request.text();
   try {
     return JSON.parse(text) as T;
