@@ -18,6 +18,32 @@ MAX_UPLOAD_BYTES = "52428800"
 # - R2_ACCESS_KEY_ID
 # - R2_SECRET_ACCESS_KEY
 
+# テスト環境用の設定
+[env.test]
+
+[env.test.vars]
+PUBLIC_BASE_URL = "https://img.be2nd.com"
+BASIC_AUTH_REALM = "imgbase"
+R2_BUCKET_NAME = "imgbase"
+UPLOAD_URL_EXPIRY_SECONDS = "900"
+MAX_UPLOAD_BYTES = "52428800"
+BASIC_AUTH_USERNAME = "admin"
+BASIC_AUTH_PASSWORD = "change-me"
+R2_ACCOUNT_ID = "test"
+R2_ACCESS_KEY_ID = "test"
+R2_SECRET_ACCESS_KEY = "test"
+
+[[env.test.r2_buckets]]
+binding = "IMGBASE_BUCKET"
+bucket_name = "imgbase"
+preview_bucket_name = "imgbase-dev"
+
+[[env.test.d1_databases]]
+binding = "IMGBASE_DB"
+database_name = "imgbase-db"
+database_id = "806695b4-80dc-4861-9ef0-bd02910347ab"
+migrations_dir = "../db/migrations"
+
 [[r2_buckets]]
 binding = "IMGBASE_BUCKET"
 bucket_name = "imgbase"

@@ -6,6 +6,7 @@ export default defineWorkersConfig({
       workers: {
         wrangler: {
           configPath: "./wrangler.toml",
+          environment: "test",
           persist: {
             d1: true
           }
