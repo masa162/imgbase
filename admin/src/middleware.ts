@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
+  const decoded = atob(encoded);
   const [username, password] = decoded.split(':');
 
   const validUsername = process.env.BASIC_AUTH_USERNAME;
