@@ -1,9 +1,6 @@
 # Cloudflare Pages configuration for imgbase admin UI
 name = "imgbase-admin"
 compatibility_date = "2024-06-20"
-compatibility_flags = ["nodejs_compat"]
 
 # Pages specific configuration
-[build]
-command = "cd admin && npm run cf:build"
-destination = "admin/.vercel/output/static"
+pages_build_output_dir = "admin/.vercel/output/static"

@@ -3,12 +3,8 @@
   "version": "1.0.0",
   "description": "Full-stack photo management system on Cloudflare",
   "private": true,
-  "workspaces": [
-    "admin",
-    "worker"
-  ],
   "scripts": {
-    "build": "cd admin && npm run cf:build",
+    "build": "cd admin && npm ci && npm run cf:build",
     "dev": "cd admin && npm run dev",
     "lint": "cd admin && npm run lint",
     "test": "cd worker && npm run test:integration"
