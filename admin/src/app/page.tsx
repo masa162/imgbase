@@ -1,5 +1,6 @@
 import UploadPanel from "../components/UploadPanel";
 import ImageLibrary from "../components/ImageLibrary";
+import ProxyUploadPanel from "../components/ProxyUploadPanel";
 
 const checklist = [
   "Cloudflare R2 バケットとアクセスキーを用意",
@@ -15,6 +16,8 @@ export default function HomePage() {
       <p>アップロードとメタ情報管理の MVP をここで動かします。まずは署名付き URL 経由のアップロードから。</p>
 
       <UploadPanel />
+
+      <ProxyUploadPanel />
 
       <section>
         <h2>初期セットアップ</h2>

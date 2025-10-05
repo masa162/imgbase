@@ -101,6 +101,73 @@ router.post(
   })
 );
 
+// Add proxy upload route for CORS compatibility
+router.post(
+  "/upload/proxy",
+  withAuth(async (request, env) => {
+    const contentType = request.headers.get("content-type");
+    const fileName = request.headers.get("x-filename");
+
+    if (!contentType || !fileName) {
+      return Response.json({ error: "Missing content-type or x-filename header" }, { status: 400 });
+    }
+
+    const fileBuffer = await request.arrayBuffer();
+    const fileSize = fileBuffer.byteLength;
+
+    if (fileSize === 0) {
+      return Response.json({ error: "Empty file" }, { status: 400 });
+    }
+
+    // Validate file size
+    const maxBytes = Number.parseInt(env.MAX_UPLOAD_BYTES ?? "52428800", 10);
+    if (fileSize > maxBytes) {
+      return Response.json({ error: `File too large. Max size: ${maxBytes} bytes` }, { status: 413 });
+    }
+
+    await ensureSchema(env);
+
+    const imageId = crypto.randomUUID();
+    const objectKey = buildObjectKey(imageId, fileName);
+    const now = new Date().toISOString();
+
+    try {
+      // Upload to R2
+      await env.IMGBASE_BUCKET.put(objectKey, fileBuffer, {
+        httpMetadata: {
+          contentType: contentType
+        },
+        customMetadata: {
+          "original-filename": fileName
+        }
+      });
+
+      // Calculate hash
+      const hash = await sha256Hex(fileBuffer);
+
+      // Insert metadata
+      await env.IMGBASE_DB.prepare(
+        `INSERT INTO images (id, bucket_key, original_filename, mime, bytes, status, hash_sha256, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`
+      )
+        .bind(imageId, objectKey, fileName, contentType, fileSize, "stored", hash, now, now)
+        .run();
+
+      return Response.json({
+        imageId,
+        objectKey,
+        bytes: fileSize,
+        hash,
+        status: "stored"
+      });
+
+    } catch (error) {
+      console.error("Upload failed", error);
+      return Response.json({ error: "Upload failed" }, { status: 500 });
+    }
+  })
+);
+
 router.post(
   "/upload/complete",
   withAuth(async (request, env) => {

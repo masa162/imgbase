@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Export the IMGBASE_DB database to a timestamped SQL file.
-set -euo pipefail
+set -eu
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR/worker"
