@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local wrangler dev
+BASIC_AUTH_USERNAME="admin"
+BASIC_AUTH_PASSWORD="change-me"
+PUBLIC_BASE_URL="https://img.example.com"

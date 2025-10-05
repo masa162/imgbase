@@ -1,0 +1,23 @@
+name = "imgbase-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-20"
+compatibility_flags = ["nodejs_compat"]
+account_id = "c677241d7d66ff80103bab9f142128ab"
+
+[vars]
+PUBLIC_BASE_URL = "https://img.example.com"
+BASIC_AUTH_REALM = "imgbase"
+R2_BUCKET_NAME = "imgbase"
+UPLOAD_URL_EXPIRY_SECONDS = "900"
+MAX_UPLOAD_BYTES = "52428800"
+
+[[r2_buckets]]
+binding = "IMGBASE_BUCKET"
+bucket_name = "imgbase"
+preview_bucket_name = "imgbase-dev"
+
+[[d1_databases]]
+binding = "IMGBASE_DB"
+database_name = "imgbase-db"
+database_id = "806695b4-80dc-4861-9ef0-bd02910347ab"
+migrations_dir = "../db/migrations"
