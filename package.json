@@ -1,0 +1,22 @@
+{
+  "name": "imgbase",
+  "version": "1.0.0",
+  "description": "Full-stack photo management system on Cloudflare",
+  "private": true,
+  "workspaces": [
+    "admin",
+    "worker"
+  ],
+  "scripts": {
+    "build": "cd admin && npm run cf:build",
+    "dev": "cd admin && npm run dev",
+    "lint": "cd admin && npm run lint",
+    "test": "cd worker && npm run test:integration"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/masa162/imgbase.git"
+  },
+  "author": "imgbase dev",
+  "license": "MIT"
+}
