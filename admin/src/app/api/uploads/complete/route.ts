@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readConfig } from "../../../../lib/config";
+import { buildBasicAuthHeader } from "../../../../lib/auth";
 
 interface CompletePayload {
   imageId: string;
@@ -53,9 +54,4 @@ export async function POST(request: NextRequest) {
 
   const json = await response.json();
   return NextResponse.json(json);
-}
-
-function buildBasicAuthHeader(user: string, password: string) {
-  const token = Buffer.from(`${user}:${password}`).toString("base64");
-  return `Basic ${token}`;
 }
