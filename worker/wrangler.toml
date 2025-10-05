@@ -5,16 +5,18 @@ compatibility_flags = ["nodejs_compat"]
 account_id = "c677241d7d66ff80103bab9f142128ab"
 
 [vars]
-PUBLIC_BASE_URL = "https://img.example.com"
+PUBLIC_BASE_URL = "https://img.be2nd.com"
 BASIC_AUTH_REALM = "imgbase"
-BASIC_AUTH_USERNAME = "admin"
-BASIC_AUTH_PASSWORD = "change-me"
-R2_ACCOUNT_ID = "test-account-id"
-R2_ACCESS_KEY_ID = "test-access-key"
-R2_SECRET_ACCESS_KEY = "test-secret-key"
 R2_BUCKET_NAME = "imgbase"
 UPLOAD_URL_EXPIRY_SECONDS = "900"
 MAX_UPLOAD_BYTES = "52428800"
+
+# 本番用Secrets (wrangler secret put で設定済み):
+# - BASIC_AUTH_USERNAME
+# - BASIC_AUTH_PASSWORD
+# - R2_ACCOUNT_ID
+# - R2_ACCESS_KEY_ID
+# - R2_SECRET_ACCESS_KEY
 
 [[r2_buckets]]
 binding = "IMGBASE_BUCKET"
