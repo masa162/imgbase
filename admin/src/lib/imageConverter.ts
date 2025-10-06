@@ -1,9 +1,4 @@
-import { decode as decodePNG } from "@jsquash/png";
-import { decode as decodeJPEG } from "@jsquash/jpeg";
-import { encode as encodeWebP } from "@jsquash/webp";
-import { resize } from "@jsquash/resize";
-
-import type {
+﻿import type {
   ConversionOptions,
   ConversionResult,
   Dimensions,
@@ -31,6 +26,10 @@ export async function convertToWebP(
   file: File,
   overrides: Partial<ConversionOptions> = {}
 ): Promise<ConversionResult> {
+  if (typeof window === "undefined") {
+    throw new Error("変換処理はブラウザ上でのみ実行できます");
+  }
+
   if (!isSupportedMimeType(file.type)) {
     throw new Error(`Unsupported format: ${file.type || "unknown"}`);
   }
@@ -42,51 +41,123 @@ export async function convertToWebP(
 
   const startedAt = performance.now();
 
-  const arrayBuffer = await file.arrayBuffer();
-  const imageData = await decodeImage(arrayBuffer, file.type);
+  const { source, width, height, cleanup } = await loadImageSource(file);
 
-  const originalDimensions: Dimensions = {
-    width: imageData.width,
-    height: imageData.height
-  };
+  try {
+    const originalDimensions: Dimensions = { width, height };
+    const targetDimensions = calculateTargetDimensions(
+      width,
+      height,
+      options.maxDimension
+    );
 
-  const targetDimensions = calculateTargetDimensions(
-    imageData.width,
-    imageData.height,
-    options.maxDimension
-  );
+    const webpBlob = await renderToWebP(
+      source,
+      targetDimensions.width,
+      targetDimensions.height,
+      options.webpQuality
+    );
 
-  const processedData =
-    targetDimensions.width === imageData.width &&
-    targetDimensions.height === imageData.height
-      ? imageData
-      : await resize(imageData, targetDimensions);
+    const durationMs = performance.now() - startedAt;
 
-  const webpArrayBuffer = await encodeWebP(processedData, {
-    quality: options.webpQuality
+    return {
+      originalFile: file,
+      webpBlob,
+      originalSize: file.size,
+      convertedSize: webpBlob.size,
+      compressionRatio: calculateCompressionRatio(file.size, webpBlob.size),
+      originalDimensions,
+      convertedDimensions: targetDimensions,
+      durationMs
+    };
+  } finally {
+    cleanup();
+  }
+}
+
+interface ImageSourcePayload {
+  source: CanvasImageSource;
+  width: number;
+  height: number;
+  cleanup: () => void;
+}
+
+async function loadImageSource(file: File): Promise<ImageSourcePayload> {
+  if (typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(file);
+
+    return {
+      source: bitmap,
+      width: bitmap.width,
+      height: bitmap.height,
+      cleanup: () => {
+        bitmap.close?.();
+      }
+    };
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
+    img.src = objectUrl;
+  }).catch(error => {
+    URL.revokeObjectURL(objectUrl);
+    throw error;
   });
 
-  const webpBlob = new Blob([webpArrayBuffer], { type: "image/webp" });
-  const durationMs = performance.now() - startedAt;
-
   return {
-    originalFile: file,
-    webpBlob,
-    originalSize: file.size,
-    convertedSize: webpBlob.size,
-    compressionRatio: calculateCompressionRatio(file.size, webpBlob.size),
-    originalDimensions,
-    convertedDimensions: targetDimensions,
-    durationMs
+    source: image,
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+    cleanup: () => {
+      URL.revokeObjectURL(objectUrl);
+    }
   };
 }
 
-async function decodeImage(buffer: ArrayBuffer, mimeType: SupportedMimeType): Promise<ImageData> {
-  if (mimeType === "image/png") {
-    return decodePNG(buffer);
+async function renderToWebP(
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  qualityPercent: number
+): Promise<Blob> {
+  const quality = clamp(qualityPercent / 100, 0, 1);
+
+  if (typeof OffscreenCanvas !== "undefined") {
+    const canvas = new OffscreenCanvas(width, height);
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("2D コンテキストの取得に失敗しました");
+    }
+
+    context.drawImage(source, 0, 0, width, height);
+    return canvas.convertToBlob({ type: "image/webp", quality });
   }
 
-  return decodeJPEG(buffer);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("2D コンテキストの取得に失敗しました");
+  }
+
+  context.drawImage(source, 0, 0, width, height);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error("WebP 生成に失敗しました"));
+        return;
+      }
+      resolve(blob);
+    }, "image/webp", quality);
+  });
 }
 
 function calculateTargetDimensions(
@@ -126,4 +197,8 @@ function calculateCompressionRatio(original: number, converted: number) {
 
   const ratio = 1 - converted / original;
   return Math.round(ratio * 1000) / 10;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
