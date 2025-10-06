@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  // Basic認証のチェック
+export const runtime = 'edge';
+
+export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader) {
@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
   const validPassword = process.env.BASIC_AUTH_PASSWORD;
 
   if (username === validUsername && password === validPassword) {
-    return NextResponse.next();
+    return NextResponse.json({ authenticated: true });
   }
 
   return new NextResponse('Invalid credentials', {
@@ -42,16 +42,3 @@ export function middleware(request: NextRequest) {
     },
   });
 }
-
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - api routes (handled by edge functions)
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-};
