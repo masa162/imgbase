@@ -1,25 +1,28 @@
-interface Env {
-  IMGBASE_UPLOAD_PROXY_URL: string;
-  ADMIN_BASIC_AUTH_USER: string;
-  ADMIN_BASIC_AUTH_PASS: string;
-}
-
-export async function onRequestPost(context: { request: Request; env: Env }) {
+export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const formData = await request.formData();
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'InvalidJSON' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   const authHeader = buildBasicAuthHeader(
     env.ADMIN_BASIC_AUTH_USER,
     env.ADMIN_BASIC_AUTH_PASS
   );
 
-  const response = await fetch(env.IMGBASE_UPLOAD_PROXY_URL, {
+  const response = await fetch(env.IMGBASE_UPLOAD_URL, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: authHeader,
     },
-    body: formData,
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -37,13 +40,13 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     );
   }
 
-  const json = await response.json();
-  return new Response(JSON.stringify(json), {
+  const signed = await response.json();
+  return new Response(JSON.stringify(signed), {
     headers: { 'Content-Type': 'application/json' },
   });
 }
 
-function buildBasicAuthHeader(user: string, password: string): string {
+function buildBasicAuthHeader(user, password) {
   const token = btoa(`${user}:${password}`);
   return `Basic ${token}`;
 }

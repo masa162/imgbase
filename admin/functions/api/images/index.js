@@ -1,10 +1,4 @@
-interface Env {
-  IMGBASE_UPLOAD_URL: string;
-  ADMIN_BASIC_AUTH_USER: string;
-  ADMIN_BASIC_AUTH_PASS: string;
-}
-
-export async function onRequest(context: { request: Request; env: Env }) {
+export async function onRequest(context) {
   const { request, env } = context;
 
   const baseUrl = new URL(env.IMGBASE_UPLOAD_URL);
@@ -43,7 +37,7 @@ export async function onRequest(context: { request: Request; env: Env }) {
   });
 }
 
-function buildBasicAuthHeader(user: string, password: string): string {
+function buildBasicAuthHeader(user, password) {
   const token = btoa(`${user}:${password}`);
   return `Basic ${token}`;
 }

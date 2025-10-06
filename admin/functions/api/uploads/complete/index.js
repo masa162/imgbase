@@ -1,10 +1,4 @@
-interface Env {
-  IMGBASE_UPLOAD_URL: string;
-  ADMIN_BASIC_AUTH_USER: string;
-  ADMIN_BASIC_AUTH_PASS: string;
-}
-
-export async function onRequestPost(context: { request: Request; env: Env }) {
+export async function onRequestPost(context) {
   const { request, env } = context;
 
   let payload;
@@ -22,7 +16,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     env.ADMIN_BASIC_AUTH_PASS
   );
 
-  const response = await fetch(env.IMGBASE_UPLOAD_URL, {
+  const response = await fetch(env.IMGBASE_UPLOAD_COMPLETE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,13 +40,13 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     );
   }
 
-  const signed = await response.json();
-  return new Response(JSON.stringify(signed), {
+  const json = await response.json();
+  return new Response(JSON.stringify(json), {
     headers: { 'Content-Type': 'application/json' },
   });
 }
 
-function buildBasicAuthHeader(user: string, password: string): string {
+function buildBasicAuthHeader(user, password) {
   const token = btoa(`${user}:${password}`);
   return `Basic ${token}`;
 }
