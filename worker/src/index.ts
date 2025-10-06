@@ -286,10 +286,60 @@ router.get(
   })
 );
 
-// Variant endpoint disabled - all images are pre-processed locally before upload
-router.get("/i/:uid/:size", async () => {
-  return new Response("Variant generation is disabled. All images are pre-processed locally.", { status: 410 });
-});
+// Variant endpoint returns the stored original without resizing for backward compatibility
+router.get(
+  "/i/:uid/:size",
+  async (request, env: Env) => {
+    const { uid, size } = request.params ?? {};
+
+    if (!uid || !size || typeof uid !== "string" || typeof size !== "string") {
+      return new Response("Not found", { status: 404 });
+    }
+
+    await ensureSchema(env);
+
+    const record = await env.IMGBASE_DB.prepare(
+      "SELECT bucket_key, status FROM images WHERE id = ?1 OR short_id = ?1"
+    )
+      .bind(uid)
+      .first<{ bucket_key: string; status: string }>();
+
+    if (!record) {
+      return new Response("Image not found", { status: 404 });
+    }
+
+    if (record.status !== "stored") {
+      return new Response("Image not ready", { status: 409 });
+    }
+
+    const object = await env.IMGBASE_BUCKET.get(record.bucket_key);
+    if (!object) {
+      return new Response("R2 object not found", { status: 404 });
+    }
+
+    const headers = new Headers();
+    headers.set("cache-control", "public, max-age=31536000, immutable");
+
+    const requestedFormat = extractRequestedFormat(size);
+    if (requestedFormat) {
+      headers.set("content-type", contentTypeForFormat(requestedFormat));
+    } else if (object.httpMetadata?.contentType) {
+      headers.set("content-type", object.httpMetadata.contentType);
+    } else {
+      headers.set("content-type", "application/octet-stream");
+    }
+
+    if (object.etag) {
+      headers.set("etag", object.etag);
+    }
+
+    if (object.uploaded) {
+      headers.set("last-modified", new Date(object.uploaded).toUTCString());
+    }
+
+    return new Response(object.body, { headers });
+  }
+);
 
 // Short URL delivery endpoint
 router.get("/:shortId", async (request, env: Env) => {
@@ -611,6 +661,15 @@ function contentTypeForFormat(format: string): string {
   }
   return `image/${lowered}`;
 }
+
+function extractRequestedFormat(sizeParam: string): string | null {
+  const dotIndex = sizeParam.lastIndexOf(".");
+  if (dotIndex === -1 || dotIndex === sizeParam.length - 1) {
+    return null;
+  }
+  return sizeParam.slice(dotIndex + 1).toLowerCase();
+}
+
 
 function encodeRfc3986(value: string): string {
   return encodeURIComponent(value).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
