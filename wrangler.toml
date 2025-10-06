@@ -6,5 +6,5 @@ compatibility_flags = ["nodejs_compat"]
 # Pages specific configuration
 pages_build_output_dir = "admin/out"
 
-[build]
-command = "cd admin && npm install && npm run cf:build"
+# Note: Build command must be configured in Cloudflare Dashboard
+# Build command: cd admin && npm install && npm run cf:build
