@@ -77,23 +77,43 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 
 ## 📝 設定手順
 
-### 1. Cloudflare Pagesの環境変数設定
+### ⚠️ 重要: 必ず順番通りに実行してください
 
-1. [Cloudflare Dashboard](https://dash.cloudflare.com/c677241d7d66ff80103bab9f142128ab/pages/view/imgbase-admin) を開く
+### 1. ビルド設定の確認・更新 ⭐ **最優先**
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com/c677241d7d66ff80103bab9f142128ab/pages/view/imgbase-admin/settings/builds-deployments) を開く
+2. **Settings** > **Builds & deployments** > **Build configurations** に移動
+3. 以下の設定を確認・更新:
+   - **Framework preset**: Next.js
+   - **Build command**: `cd admin && npm install && npm run cf:build`
+   - **Build output directory**: `admin/out` （wrangler.tomlで指定済みのため変更不可）
+   - **Root directory**: (空欄)
+4. **Save** をクリック
+
+### 2. Cloudflare Pagesの環境変数設定
+
+1. [Environment variables](https://dash.cloudflare.com/c677241d7d66ff80103bab9f142128ab/pages/view/imgbase-admin/settings/environment-variables) を開く
 2. **Settings** > **Environment variables** > **Production** に移動
-3. CSVファイル (`temp/imgbase-admin_variables.csv`) の内容を1つずつ追加
+3. CSVファイル (`temp/imgbase-admin_variables.csv`) の7つの変数を1つずつ追加:
+   - `ADMIN_BASIC_AUTH_PASS` = `39` (Secret)
+   - `ADMIN_BASIC_AUTH_USER` = `mn` (Secret)
+   - `BASIC_AUTH_PASSWORD` = `39` (Secret)
+   - `BASIC_AUTH_USERNAME` = `mn` (Secret)
+   - `IMGBASE_UPLOAD_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload` (Secret)
+   - `IMGBASE_UPLOAD_COMPLETE_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload/complete` (Secret)
+   - `IMGBASE_UPLOAD_PROXY_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload/proxy` (Secret)
 4. 各変数のTypeは **Secret** を選択
-
-### 2. ビルド設定の確認
-
-1. **Settings** > **Builds & deployments** > **Build configurations**
-2. 上記の設定値を確認・更新
+5. **Save** をクリック
 
 ### 3. 再デプロイ
 
 1. **Deployments** タブに移動
 2. 最新のデプロイメントを選択
 3. **Retry deployment** をクリック
+4. ビルドログを確認:
+   - ✅ `cd admin && npm install && npm run cf:build` が実行されている
+   - ✅ `cp -r functions out/` が実行されている
+   - ✅ `admin/out/functions/` が作成されている
 
 ---
 
