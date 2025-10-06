@@ -10,7 +10,7 @@
 
 ### 1.1 目的
 
-ブラウザ内で完結するクライアントサイド画像変換機能を実装し、PNG/JPEG画像をWebP形式（500px、品質85%）に変換する。変換後の画像は既存の管理画面から手動アップロードする。
+ブラウザ内で完結するクライアントサイド画像変換機能を実装し、PNG/JPEG画像をWebP形式（800px、品質92%）に変換する。変換後の画像は既存の管理画面から手動アップロードする。
 
 ### 1.2 背景
 
@@ -23,7 +23,7 @@
 ```
 [ブラウザ内で完結]
   1. ユーザーが画像を選択（PNG/JPEG）
-  2. jSquash で WebP (500px, 85%品質) に変換
+  2. jSquash で WebP (800px, 92%品質) に変換
   3. プレビュー表示・ダウンロード
   4. 変換済みファイルを管理画面の「オリジナル保存」でアップロード
 ```
@@ -94,9 +94,9 @@ imgbase/
 | 処理 | 仕様 |
 |------|------|
 | フォーマット変換 | PNG/JPEG → WebP |
-| WebP品質 | 85%（固定） |
-| リサイズロジック | 長辺を500pxに（アスペクト比保持） |
-| 小画像の扱い | 500px以下は拡大しない |
+| WebP品質 | 92%（固定） |
+| リサイズロジック | 長辺を800pxに（アスペクト比保持） |
+| 小画像の扱い | 800px以下は拡大しない |
 | 透明度 | WebPで保持 |
 
 #### 出力仕様
@@ -122,13 +122,13 @@ imgbase/
 │  └────────────────────────────────────┘ │
 │                                          │
 │  設定:                                   │
-│    ☑ リサイズ: 長辺500px                 │
-│    ☑ WebP品質: 85%                      │
+│    ☑ リサイズ: 長辺800px                 │
+│    ☑ WebP品質: 92%                      │
 │                                          │
 │  ┌─ 変換前 ─────┬─ 変換後 ─────────┐  │
 │  │ photo.jpg    │ photo.webp         │  │
 │  │ 6.2 MB       │ 45.2 KB (-99%)     │  │
-│  │ 4624x3472    │ 500x375            │  │
+│  │ 4624x3472    │ 800x601           │  │
 │  │ [プレビュー] │ [プレビュー]       │  │
 │  │              │ [ダウンロード]     │  │
 │  └──────────────┴────────────────────┘  │
@@ -219,7 +219,7 @@ import { decode as decodeJPEG } from "@jsquash/jpeg";
 import { resize } from "@jsquash/resize";
 
 export interface ConversionOptions {
-  maxDimension: number;  // 500
+  maxDimension: number;  // 800
   webpQuality: number;   // 85
 }
 
@@ -235,7 +235,7 @@ export interface ConversionResult {
 
 export async function convertToWebP(
   file: File,
-  options: ConversionOptions = { maxDimension: 500, webpQuality: 85 }
+  options: ConversionOptions = { maxDimension: 800, webpQuality: 92 }
 ): Promise<ConversionResult> {
 
   // 1. ファイルを読み込み
@@ -522,8 +522,8 @@ npm install @jsquash/webp @jsquash/png @jsquash/jpeg @jsquash/resize jszip
 
 | テストケース | 入力 | 期待結果 |
 |-------------|------|----------|
-| PNG→WebP | 1000x800 PNG | 500x400 WebP (85%) |
-| JPEG→WebP | 4624x3472 JPEG | 500x375 WebP |
+| PNG→WebP | 1000x800 PNG | 800x640 WebP (92%) |
+| JPEG→WebP | 4624x3472 JPEG | 800x601 WebP |
 | 小画像 | 300x200 JPEG | 300x200 WebP（拡大なし） |
 | 透明PNG | PNG (透明あり) | WebP (透明保持) |
 

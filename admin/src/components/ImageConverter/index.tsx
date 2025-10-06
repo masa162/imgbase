@@ -126,7 +126,7 @@ export default function ImageConverter() {
         <p className="converter-badge">ローカル変換</p>
         <h1>WebP ローカル変換ツール</h1>
         <p className="converter-description">
-          ブラウザ内で PNG / JPEG を自動的に WebP (最大長辺 500px ・ 品質 85%) に変換します。変換済みファイルは ZIP で一括ダウンロードでき、サーバーへアップロードされません。
+          ブラウザ内で PNG / JPEG を自動的に WebP (最大長辺 800px ・ 品質 92%) に変換します。変換済みファイルは ZIP で一括ダウンロードでき、サーバーへアップロードされません。
         </p>
       </header>
 

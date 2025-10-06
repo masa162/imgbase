@@ -6,8 +6,8 @@
 } from "../types/converter";
 
 export const DEFAULT_CONVERSION_OPTIONS: ConversionOptions = {
-  maxDimension: 500,
-  webpQuality: 85
+  maxDimension: 800,
+  webpQuality: 92
 };
 
 const DEFAULT_OPTIONS = DEFAULT_CONVERSION_OPTIONS;
