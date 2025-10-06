@@ -281,35 +281,9 @@ router.get(
   })
 );
 
-router.get("/i/:uid/:size", async (request, env: Env) => {
-  const { uid, size } = request.params ?? {};
-  if (!uid || !size) {
-    return new Response("Bad Request", { status: 400 });
-  }
-
-  const dimensionMatch = size.match(/^(\d+)x(\d+)\.(jpg|jpeg|webp)$/i);
-  if (!dimensionMatch) {
-    return new Response("Invalid size parameter", { status: 400 });
-  }
-
-  const [, width, height, rawFormat] = dimensionMatch;
-  const normalizedFormat = normalizeFormat(rawFormat);
-  const widthNumber = Number(width);
-  const heightNumber = Number(height);
-  const variantKey = `${uid}/${width}x${height}.${normalizedFormat}`;
-
-  const cachedObject = await env.IMGBASE_BUCKET.get(variantKey);
-  if (cachedObject) {
-    return buildImageResponse(cachedObject, normalizedFormat);
-  }
-
-  return generateVariantResponse(env, {
-    imageId: uid,
-    variantKey,
-    width: widthNumber,
-    height: heightNumber,
-    format: normalizedFormat
-  });
+// Variant endpoint disabled - all images are pre-processed locally before upload
+router.get("/i/:uid/:size", async () => {
+  return new Response("Variant generation is disabled. All images are pre-processed locally.", { status: 410 });
 });
 
 router.all("*", () => new Response("Not found", { status: 404 }));
@@ -590,69 +564,8 @@ async function extractMetadata(object: R2ObjectBody, buffer: ArrayBuffer): Promi
   };
 }
 
-function normalizeFormat(format: string): string {
-  const lowered = format.toLowerCase();
-  if (lowered === "jpeg") {
-    return "jpg";
-  }
-  return lowered;
-}
-
-async function generateVariantResponse(
-  env: Env,
-  {
-    imageId,
-    variantKey,
-    width,
-    height,
-    format
-  }: {
-    imageId: string;
-    variantKey: string;
-    width: number;
-    height: number;
-    format: string;
-  }
-): Promise<Response> {
-  const record = await env.IMGBASE_DB.prepare("SELECT bucket_key FROM images WHERE id = ?1")
-    .bind(imageId)
-    .first<{ bucket_key: string }>();
-
-  if (!record) {
-    return Response.json({ error: "ImageNotFound" }, { status: 404 });
-  }
-
-  const originalObject = await env.IMGBASE_BUCKET.get(record.bucket_key);
-  if (!originalObject) {
-    return Response.json({ error: "OriginalNotFound" }, { status: 404 });
-  }
-
-  const originalBuffer = await originalObject.arrayBuffer();
-  const resized = await resizeImage(originalBuffer, { width, height, format });
-
-  await env.IMGBASE_BUCKET.put(variantKey, resized.bytes, {
-    httpMetadata: {
-      contentType: resized.contentType
-    }
-  });
-
-  return new Response(resized.bytes, {
-    headers: {
-      "content-type": resized.contentType,
-      "cache-control": "public, max-age=31536000, immutable"
-    }
-  });
-}
-
-async function resizeImage(
-  buffer: ArrayBuffer,
-  { width, height, format }: { width: number; height: number; format: string }
-): Promise<{ bytes: ArrayBuffer; contentType: string }> {
-  // TODO: swap stub with Cloudflare Image Resizing service call.
-  const cloned = buffer.slice(0);
-  const contentType = contentTypeForFormat(format);
-  return { bytes: cloned, contentType };
-}
+// Removed: normalizeFormat(), generateVariantResponse(), resizeImage()
+// All image processing is now done locally before upload.
 
 function contentTypeForFormat(format: string): string {
   const lowered = format.toLowerCase();
