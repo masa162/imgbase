@@ -73,6 +73,16 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 - **Root directory**: (空欄)
 - **Node.js version**: 20
 
+### Pages Functions
+
+- **配置場所**: `/functions/` (リポジトリルート)
+- **構成**:
+  - `/functions/api/images/index.js` - 画像一覧取得API
+  - `/functions/api/uploads/index.js` - 署名付きURL取得API
+  - `/functions/api/uploads/complete/index.js` - アップロード完了通知API
+  - `/functions/api/uploads/proxy/index.js` - プロキシアップロードAPI
+- **注意**: Cloudflare Pagesは `<project_root>/functions/` または `<build_output>/_functions/` を自動検出します
+
 ---
 
 ## 📝 設定手順
@@ -112,8 +122,8 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 3. **Retry deployment** をクリック
 4. ビルドログを確認:
    - ✅ `cd admin && npm install && npm run cf:build` が実行されている
-   - ✅ `cp -r functions out/` が実行されている
-   - ✅ `admin/out/functions/` が作成されている
+   - ✅ Next.js ビルドが成功している
+   - ✅ Pages Functions が検出されている (`Uploading Functions...` など)
 
 ---
 
