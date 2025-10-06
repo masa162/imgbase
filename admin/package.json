@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cf:build": "next build && cp -r functions out/"
+    "cf:build": "next build && echo '=== Copying functions ===' && cp -rv functions out/ && echo '=== Functions copied ===' && ls -la out/functions/"
   },
   "dependencies": {
     "next": "^14.2.3",
