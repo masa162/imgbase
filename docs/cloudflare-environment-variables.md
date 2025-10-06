@@ -13,7 +13,7 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 
 **設定場所**: Cloudflare Dashboard > Pages > imgbase-admin > Settings > Environment variables > Production
 
-### 必須環境変数 (7個)
+### 必須環境変数 (8個)
 
 | 変数名 | 値 | 用途 |
 |--------|-----|------|
@@ -24,6 +24,7 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 | `IMGBASE_UPLOAD_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/sign` | 署名付きURL取得API ⚠️ `/upload/sign` が正しい |
 | `IMGBASE_UPLOAD_COMPLETE_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/complete` | アップロード完了通知API |
 | `IMGBASE_UPLOAD_PROXY_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/proxy` | プロキシアップロードAPI |
+| `IMGBASE_WORKER_URL` | `https://imgbase-worker.belong2jazz.workers.dev` | Worker API ベースURL（画像配信用） |
 
 ### CSVファイル
 
