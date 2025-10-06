@@ -27,50 +27,70 @@ Error: The CORS configuration does not exist. [code: 10059]
 
 ## 解決方法
 
-### Option A: Cloudflare Dashboard (推奨)
+### Option A: Cloudflare Dashboard - JSON直接編集（推奨）
 
 1. **R2ダッシュボードを開く**
    - https://dash.cloudflare.com/c677241d7d66ff80103bab9f142128ab/r2/default/buckets/imgbase
 
 2. **Settings** タブ → **CORS Policy** セクション
 
-3. **Add CORS Policy** をクリック
+3. JSON編集エリアに以下をコピー＆ペースト：
 
-4. 以下の設定を入力：
+   **推奨設定（本番 + 開発環境）**:
+   ```json
+   [
+     {
+       "AllowedOrigins": [
+         "https://admin.be2nd.com"
+       ],
+       "AllowedMethods": [
+         "GET",
+         "PUT",
+         "HEAD"
+       ],
+       "AllowedHeaders": [
+         "content-type",
+         "x-amz-meta-original-filename",
+         "x-amz-date"
+       ],
+       "ExposeHeaders": [
+         "etag"
+       ],
+       "MaxAgeSeconds": 86400
+     },
+     {
+       "AllowedOrigins": [
+         "http://localhost:3000"
+       ],
+       "AllowedMethods": [
+         "GET",
+         "PUT",
+         "HEAD"
+       ],
+       "AllowedHeaders": [
+         "content-type",
+         "x-amz-meta-original-filename",
+         "x-amz-date"
+       ],
+       "ExposeHeaders": [
+         "etag"
+       ],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
 
-   **Allowed Origins**:
-   ```
-   https://admin.be2nd.com
-   ```
+4. **Save** をクリック
 
-   **Allowed Methods**:
-   - ☑ PUT
-   - ☑ GET
-   - ☑ HEAD
+### JSONフィールドの説明
 
-   **Allowed Headers**:
-   ```
-   *
-   ```
-   (または具体的に):
-   ```
-   content-type
-   x-amz-meta-original-filename
-   x-amz-date
-   authorization
-   ```
-
-   **Expose Headers**:
-   ```
-   etag
-   ```
-
-   **Max Age (seconds)**:
-   ```
-   86400
-   ```
-
-5. **Save** をクリック
+| フィールド | 説明 | 推奨値 |
+|-----------|------|--------|
+| `AllowedOrigins` | 許可するオリジン（ドメイン）<br>⚠️ 末尾スラッシュなし | `"https://admin.be2nd.com"` |
+| `AllowedMethods` | 許可するHTTPメソッド | `["GET", "PUT", "HEAD"]` |
+| `AllowedHeaders` | クライアントが送信できるヘッダー<br>`["*"]` で全て許可も可能 | 具体的に列挙推奨 |
+| `ExposeHeaders` | ブラウザがアクセスできるレスポンスヘッダー | `["etag"]` |
+| `MaxAgeSeconds` | ブラウザのキャッシュ時間（秒） | `86400` (24時間) |
 
 ### Option B: Wrangler CLI
 
