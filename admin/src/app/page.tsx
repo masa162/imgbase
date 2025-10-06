@@ -1,3 +1,4 @@
+import Link from "next/link";
 import UploadPanel from "../components/UploadPanel";
 import ImageLibrary from "../components/ImageLibrary";
 import ProxyUploadPanel from "../components/ProxyUploadPanel";
@@ -14,6 +15,10 @@ export default function HomePage() {
     <main>
       <h1>imgbase 管理UI</h1>
       <p>アップロードとメタ情報管理の MVP をここで動かします。まずは署名付き URL 経由のアップロードから。</p>
+
+      <section className="converter-home-link">
+        <Link href="/converter" className="converter-summary__link">ローカル画像変換ツールを開く</Link>
+      </section>
 
       <UploadPanel />
 
