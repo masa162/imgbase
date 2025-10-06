@@ -145,12 +145,15 @@ router.post(
       // Calculate hash
       const hash = await sha256Hex(fileBuffer);
 
+      // Generate unique short_id
+      const shortId = await generateUniqueShortId(env.IMGBASE_DB);
+
       // Insert metadata
       await env.IMGBASE_DB.prepare(
-        `INSERT INTO images (id, bucket_key, original_filename, mime, bytes, status, hash_sha256, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`
+        `INSERT INTO images (id, bucket_key, original_filename, mime, bytes, status, hash_sha256, short_id, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`
       )
-        .bind(imageId, objectKey, fileName, contentType, fileSize, "stored", hash, now, now)
+        .bind(imageId, objectKey, fileName, contentType, fileSize, "stored", hash, shortId, now, now)
         .run();
 
       return Response.json({
@@ -158,6 +161,7 @@ router.post(
         objectKey,
         bytes: fileSize,
         hash,
+        shortId,
         status: "stored"
       });
 
@@ -254,7 +258,7 @@ router.get(
     }
 
     let query =
-      "SELECT id, original_filename, mime, bytes, status, hash_sha256, created_at, updated_at FROM images";
+      "SELECT id, original_filename, mime, bytes, status, hash_sha256, short_id, created_at, updated_at FROM images";
 
     if (conditions.length) {
       query += ` WHERE ${conditions.join(" AND ")}`;
@@ -270,6 +274,7 @@ router.get(
       bytes: number;
       status: string;
       hash_sha256: string | null;
+      short_id: string | null;
       created_at: string;
       updated_at: string;
     }>();
@@ -284,6 +289,38 @@ router.get(
 // Variant endpoint disabled - all images are pre-processed locally before upload
 router.get("/i/:uid/:size", async () => {
   return new Response("Variant generation is disabled. All images are pre-processed locally.", { status: 410 });
+});
+
+// Short URL delivery endpoint
+router.get("/:shortId", async (request, env: Env) => {
+  const { shortId } = request.params ?? {};
+
+  // Validate short_id format (8 characters, lowercase alphanumeric)
+  if (!shortId || !/^[a-z0-9]{8}$/.test(shortId)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  await ensureSchema(env);
+
+  const record = await env.IMGBASE_DB.prepare(
+    "SELECT bucket_key FROM images WHERE short_id = ?1"
+  ).bind(shortId).first<{ bucket_key: string }>();
+
+  if (!record) {
+    return new Response("Image not found", { status: 404 });
+  }
+
+  const object = await env.IMGBASE_BUCKET.get(record.bucket_key);
+  if (!object) {
+    return new Response("R2 object not found", { status: 404 });
+  }
+
+  return new Response(object.body, {
+    headers: {
+      "content-type": object.httpMetadata?.contentType || "application/octet-stream",
+      "cache-control": "public, max-age=31536000, immutable"
+    }
+  });
 });
 
 router.all("*", () => new Response("Not found", { status: 404 }));
@@ -632,4 +669,28 @@ function formatAmzDate(date: Date): string {
   const min = String(date.getUTCMinutes()).padStart(2, "0");
   const ss = String(date.getUTCSeconds()).padStart(2, "0");
   return `${yyyy}${mm}${dd}T${hh}${min}${ss}Z`;
+}
+
+function generateShortId(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 8; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
+async function generateUniqueShortId(db: D1Database): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const shortId = generateShortId();
+    const exists = await db
+      .prepare("SELECT 1 FROM images WHERE short_id = ?1")
+      .bind(shortId)
+      .first();
+
+    if (!exists) {
+      return shortId;
+    }
+  }
+  throw new Error("Failed to generate unique short_id after 10 attempts");
 }
