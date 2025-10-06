@@ -106,7 +106,7 @@ export default function FileDropZone({ onFilesSelected, disabled = false }: File
       >
         ファイルを選択
       </button>
-      <p className="converter-dropzone__hint">対応形式: PNG / JPEG ・ 複数ファイル可</p>
+      <p className="converter-dropzone__hint">対応形式: PNG / JPEG ・ 複数ファイル可 ・ クリップボード(Ctrl+V)対応</p>
       <input
         ref={inputRef}
         type="file"

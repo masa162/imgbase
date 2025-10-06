@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   DEFAULT_CONVERSION_OPTIONS,
@@ -119,6 +119,52 @@ export default function ImageConverter() {
     setImages([]);
     setErrors([]);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const clipboard = event.clipboardData;
+      if (!clipboard) {
+        return;
+      }
+
+      const files: File[] = [];
+
+      for (const item of Array.from(clipboard.items)) {
+        if (item.kind !== "file") {
+          continue;
+        }
+
+        const file = item.getAsFile();
+        if (file && isSupportedMimeType(file.type)) {
+          files.push(file);
+        }
+      }
+
+      if (files.length === 0) {
+        for (const file of Array.from(clipboard.files ?? [])) {
+          if (isSupportedMimeType(file.type)) {
+            files.push(file);
+          }
+        }
+      }
+
+      if (files.length === 0) {
+        return;
+      }
+
+      event.preventDefault();
+      void handleFilesSelected(files);
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [handleFilesSelected]);
 
   return (
     <section className="converter-container">
