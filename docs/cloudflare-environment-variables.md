@@ -21,7 +21,7 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
 | `ADMIN_BASIC_AUTH_USER` | `mn` | Pages Functions用Basic認証ユーザー名 |
 | `BASIC_AUTH_PASSWORD` | `39` | (予備) |
 | `BASIC_AUTH_USERNAME` | `mn` | (予備) |
-| `IMGBASE_UPLOAD_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload` | 署名付きURL取得API |
+| `IMGBASE_UPLOAD_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/sign` | 署名付きURL取得API ⚠️ `/upload/sign` が正しい |
 | `IMGBASE_UPLOAD_COMPLETE_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/complete` | アップロード完了通知API |
 | `IMGBASE_UPLOAD_PROXY_URL` | `https://imgbase-worker.belong2jazz.workers.dev/upload/proxy` | プロキシアップロードAPI |
 
@@ -109,7 +109,7 @@ Cloudflare Pages (管理UI) と Cloudflare Workers (API) で使用する環境�
    - `ADMIN_BASIC_AUTH_USER` = `mn` (Secret)
    - `BASIC_AUTH_PASSWORD` = `39` (Secret)
    - `BASIC_AUTH_USERNAME` = `mn` (Secret)
-   - `IMGBASE_UPLOAD_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload` (Secret)
+   - `IMGBASE_UPLOAD_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload/sign` (Secret) ⚠️ **重要**: `/upload/sign` が正しいパス
    - `IMGBASE_UPLOAD_COMPLETE_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload/complete` (Secret)
    - `IMGBASE_UPLOAD_PROXY_URL` = `https://imgbase-worker.belong2jazz.workers.dev/upload/proxy` (Secret)
 4. 各変数のTypeは **Secret** を選択
