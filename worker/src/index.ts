@@ -286,6 +286,63 @@ router.get(
   })
 );
 
+router.delete(
+  "/images/batch",
+  withAuth(async (request, env) => {
+    let payload: BatchDeleteRequest;
+    try {
+      payload = await readJson<BatchDeleteRequest>(request);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        return Response.json({ error: error.message }, { status: 400 });
+      }
+      throw error;
+    }
+
+    const ids = Array.isArray(payload.imageIds) ? payload.imageIds.filter(id => typeof id === "string" && id.trim().length > 0) : [];
+    if (ids.length === 0) {
+      return Response.json({ error: "imageIds is required" }, { status: 400 });
+    }
+
+    if (ids.length > 50) {
+      return Response.json({ error: "Too many images requested at once" }, { status: 400 });
+    }
+
+    await ensureSchema(env);
+
+    let deleted = 0;
+
+    for (const id of ids) {
+      try {
+        const record = await env.IMGBASE_DB.prepare(
+          "SELECT bucket_key FROM images WHERE id = ?1"
+        )
+          .bind(id)
+          .first<{ bucket_key: string }>();
+
+        if (!record) {
+          continue;
+        }
+
+        if (record.bucket_key) {
+          await env.IMGBASE_BUCKET.delete(record.bucket_key);
+        }
+
+        await env.IMGBASE_DB.prepare("DELETE FROM images WHERE id = ?1")
+          .bind(id)
+          .run();
+
+        deleted += 1;
+      } catch (error) {
+        console.error("Failed to delete image", id, error);
+        return Response.json({ error: "DeleteFailed" }, { status: 500 });
+      }
+    }
+
+    return Response.json({ deleted });
+  })
+);
+
 // Variant endpoint returns the stored original without resizing for backward compatibility
 router.get(
   "/i/:uid/:size",
@@ -556,6 +613,10 @@ interface CompleteUploadRequest {
   imageId: string;
 }
 
+interface BatchDeleteRequest {
+  imageIds: string[];
+}
+
 function buildObjectKey(imageId: string, fileName: string) {
   const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, "");
   return `${imageId}/original/${cleanName || "file"}`;
@@ -753,3 +814,4 @@ async function generateUniqueShortId(db: D1Database): Promise<string> {
   }
   throw new Error("Failed to generate unique short_id after 10 attempts");
 }
+
