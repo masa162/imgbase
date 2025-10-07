@@ -475,6 +475,7 @@ async function ensureSchema(env: Env) {
       hash_sha256 TEXT,
       exif_json TEXT,
       taken_at TEXT,
+      short_id TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -509,6 +510,19 @@ async function ensureSchema(env: Env) {
   for (const statement of statements) {
     await env.IMGBASE_DB.prepare(statement).run();
   }
+
+  try {
+    await env.IMGBASE_DB.prepare("ALTER TABLE images ADD COLUMN short_id TEXT").run();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('duplicate column name') && !message.includes('duplicate column')) {
+      throw error;
+    }
+  }
+
+  await env.IMGBASE_DB.prepare(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_images_short_id ON images(short_id) WHERE short_id IS NOT NULL`
+  ).run();
 
   schemaPrepared = true;
 }
