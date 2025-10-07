@@ -79,6 +79,28 @@ describe("upload signing", () => {
     expect(variantResponse.headers.get("cache-control")).toContain("max-age=31536000");
     const variantBody = new Uint8Array(await variantResponse.arrayBuffer());
     expect(Array.from(variantBody)).toEqual(Array.from(payload));
+
+    const deleteResponse = await SELF.fetch(`${baseUrl}/images/batch`, {
+      method: "DELETE",
+      headers: {
+        Authorization: basicAuthHeader,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ imageIds: [signedBody.imageId] })
+    });
+
+    expect(deleteResponse.status).toBe(200);
+    const deleteBody = await deleteResponse.json<{ deleted: number; failed: unknown[] }>();
+    expect(deleteBody.deleted).toBe(1);
+    expect(Array.isArray(deleteBody.failed)).toBe(true);
+    expect(deleteBody.failed.length).toBe(0);
+
+    const afterDelete = await env.IMGBASE_DB.prepare(
+      "SELECT id FROM images WHERE id = ?1"
+    )
+      .bind(signedBody.imageId)
+      .first();
+    expect(afterDelete).toBeNull();
   });
 
   it("rejects oversized files", async () => {

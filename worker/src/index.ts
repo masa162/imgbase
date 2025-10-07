@@ -300,46 +300,66 @@ router.delete(
     }
 
     const ids = Array.isArray(payload.imageIds) ? payload.imageIds.filter(id => typeof id === "string" && id.trim().length > 0) : [];
-    if (ids.length === 0) {
+    const uniqueIds = [...new Set(ids)];
+
+    if (uniqueIds.length === 0) {
       return Response.json({ error: "imageIds is required" }, { status: 400 });
     }
 
-    if (ids.length > 50) {
+    if (uniqueIds.length > 50) {
       return Response.json({ error: "Too many images requested at once" }, { status: 400 });
     }
 
     await ensureSchema(env);
 
     let deleted = 0;
+    const failed: Array<{ id: string; reason: string }> = [];
 
-    for (const id of ids) {
+    for (const id of uniqueIds) {
+      let record: { bucket_key: string } | null = null;
       try {
-        const record = await env.IMGBASE_DB.prepare(
-          "SELECT bucket_key FROM images WHERE id = ?1"
-        )
+        record = await env.IMGBASE_DB.prepare("SELECT bucket_key FROM images WHERE id = ?1")
           .bind(id)
           .first<{ bucket_key: string }>();
+      } catch (error) {
+        console.error("Failed to fetch image metadata", id, error);
+        failed.push({ id, reason: "MetadataLookupFailed" });
+        continue;
+      }
 
-        if (!record) {
-          continue;
-        }
+      if (!record) {
+        continue;
+      }
 
+      let hadFailure = false;
+
+      try {
         if (record.bucket_key) {
           await env.IMGBASE_BUCKET.delete(record.bucket_key);
         }
+      } catch (error) {
+        console.error("Failed to delete R2 object", id, error);
+        failed.push({ id, reason: "R2DeleteFailed" });
+        hadFailure = true;
+      }
 
+      try {
         await env.IMGBASE_DB.prepare("DELETE FROM images WHERE id = ?1")
           .bind(id)
           .run();
-
-        deleted += 1;
       } catch (error) {
-        console.error("Failed to delete image", id, error);
-        return Response.json({ error: "DeleteFailed" }, { status: 500 });
+        console.error("Failed to delete image record", id, error);
+        failed.push({ id, reason: "DatabaseDeleteFailed" });
+        hadFailure = true;
+        continue;
+      }
+
+      if (!hadFailure) {
+        deleted += 1;
       }
     }
 
-    return Response.json({ deleted });
+    return Response.json({ deleted, failed });
   })
 );
 

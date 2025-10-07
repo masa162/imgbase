@@ -216,10 +216,25 @@ export default function ImageLibrary() {
       }
 
       const result = await response.json();
-      const deletedCount = typeof result.deleted === "number" ? result.deleted : ids.length;
-      setStatusMessage(`${deletedCount}件の画像を削除しました`);
+      const deletedCount = typeof result.deleted === "number" ? result.deleted : 0;
+      type FailedItem = { id?: string; reason?: string };
+      const failedItems = (Array.isArray(result.failed) ? result.failed : []) as FailedItem[];
+
       setSelectedIds(new Set());
       await fetchImages({ reset: true });
+
+      if (failedItems.length > 0) {
+        const sampleIds = failedItems
+          .map(item => (item && typeof item.id === "string") ? item.id : undefined)
+          .filter((id): id is string => Boolean(id))
+          .slice(0, 3);
+        const sampleLabel = sampleIds.length > 0 ? `（例: ${sampleIds.join(", ")}）` : "";
+        setError(`一部の画像の削除に失敗しました${sampleLabel}`);
+        setStatusMessage(`${deletedCount}件の画像を削除しました（失敗: ${failedItems.length}件）`);
+      } else {
+        setError(null);
+        setStatusMessage(`${deletedCount}件の画像を削除しました`);
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "画像の削除に失敗しました");

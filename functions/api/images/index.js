@@ -21,24 +21,19 @@ async function handleGet(context) {
     },
   });
 
+  const bodyText = await response.text();
+  const contentType = response.headers.get('content-type') || 'application/json';
+
   if (!response.ok) {
-    const body = await response.text();
-    return new Response(
-      JSON.stringify({
-        error: 'UpstreamError',
-        status: response.status,
-        body,
-      }),
-      {
-        status: 502,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(bodyText, {
+      status: response.status,
+      headers: { 'Content-Type': contentType },
+    });
   }
 
-  const json = await response.json();
-  return new Response(JSON.stringify(json), {
-    headers: { 'Content-Type': 'application/json' },
+  const payload = bodyText || JSON.stringify({ items: [], nextCursor: null });
+  return new Response(payload, {
+    headers: { 'Content-Type': contentType },
   });
 }
 
@@ -75,25 +70,20 @@ async function handleDelete(context) {
     body: JSON.stringify({ imageIds }),
   });
 
-  const text = await response.text();
+  const bodyText = await response.text();
+  const contentType = response.headers.get('content-type') || 'application/json';
 
   if (!response.ok) {
-    return new Response(
-      JSON.stringify({
-        error: 'UpstreamError',
-        status: response.status,
-        body: text,
-      }),
-      {
-        status: 502,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(bodyText, {
+      status: response.status,
+      headers: { 'Content-Type': contentType },
+    });
   }
 
-  return new Response(text || JSON.stringify({ deleted: 0 }), {
+  const payload = bodyText || JSON.stringify({ deleted: 0, failed: [] });
+  return new Response(payload, {
     status: response.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': contentType },
   });
 }
 
