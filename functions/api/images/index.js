@@ -80,8 +80,8 @@ async function handleDelete(context) {
     });
   }
 
-  const payload = bodyText || JSON.stringify({ deleted: 0, failed: [] });
-  return new Response(payload, {
+  const responseBody = bodyText || JSON.stringify({ deleted: 0, failed: [] });
+  return new Response(responseBody, {
     status: response.status,
     headers: { 'Content-Type': contentType },
   });
