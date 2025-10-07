@@ -44,7 +44,8 @@
       "WebSearch",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:github.com)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(gh api:*)"
     ],
     "deny": [],
     "ask": []
