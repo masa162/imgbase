@@ -9,7 +9,8 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const navItems: Array<{ href: Route; label: string; icon: string }> = [
-    { href: "/" as Route, label: "アップロード", icon: "📤" },
+    { href: "/" as Route, label: "画像ライブラリ", icon: "🖼️" },
+    { href: "/upload" as Route, label: "アップロード", icon: "📤" },
     { href: "/converter" as Route, label: "ローカル画像変換ツール", icon: "🔧" }
   ];
 

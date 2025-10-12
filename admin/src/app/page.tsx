@@ -1,17 +1,14 @@
-import UploadPanel from "../components/UploadPanel";
 import ImageLibrary from "../components/ImageLibrary";
-import ProxyUploadPanel from "../components/ProxyUploadPanel";
 
 export default function HomePage() {
   return (
     <main>
-      <h1>imgbase 管理UI</h1>
+      <h1>画像ライブラリ</h1>
+      <p style={{ color: "#94a3b8", marginBottom: "2rem" }}>
+        アップロード済みの画像を管理できます。
+      </p>
 
       <ImageLibrary />
-
-      <UploadPanel />
-
-      <ProxyUploadPanel />
     </main>
   );
 }
