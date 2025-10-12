@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Sidebar from "../components/Sidebar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +14,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
+      <body>
+        <Sidebar />
+        <div style={{ marginLeft: "280px", minHeight: "100vh" }}>
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
