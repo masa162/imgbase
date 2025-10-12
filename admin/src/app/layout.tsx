@@ -21,7 +21,7 @@ export default function RootLayout({
       </head>
       <body>
         <Sidebar />
-        <div style={{ marginLeft: "280px", minHeight: "100vh" }}>
+        <div className="main-wrapper">
           {children}
         </div>
       </body>

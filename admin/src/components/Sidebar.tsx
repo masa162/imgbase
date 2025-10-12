@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { Route } from "next";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const navItems: Array<{ href: Route; label: string; icon: string }> = [
     { href: "/" as Route, label: "画像ライブラリ", icon: "🖼️" },
@@ -14,50 +16,57 @@ export default function Sidebar() {
     { href: "/converter" as Route, label: "ローカル画像変換ツール", icon: "🔧" }
   ];
 
-  return (
-    <aside style={sidebarStyle}>
-      <div style={logoContainerStyle}>
-        <Link href={"/" as Route} style={logoLinkStyle}>
-          <img
-            src="/logo.webp"
-            alt="imgbase logo"
-            style={logoImageStyle}
-          />
-        </Link>
-      </div>
+  const handleNavClick = () => {
+    setIsOpen(false);
+  };
 
-      <nav style={navStyle}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={isActive ? "nav-item nav-item-active" : "nav-item"}
-            >
-              <span style={navIconStyle}>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+  return (
+    <>
+      <button
+        className="hamburger-button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="メニュー"
+      >
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+      </button>
+
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />
+      )}
+
+      <aside className={isOpen ? "sidebar sidebar-open" : "sidebar"}>
+        <div style={logoContainerStyle}>
+          <Link href={"/" as Route} style={logoLinkStyle} onClick={handleNavClick}>
+            <img
+              src="/logo.webp"
+              alt="imgbase logo"
+              style={logoImageStyle}
+            />
+          </Link>
+        </div>
+
+        <nav style={navStyle}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={isActive ? "nav-item nav-item-active" : "nav-item"}
+                onClick={handleNavClick}
+              >
+                <span style={navIconStyle}>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 }
-
-const sidebarStyle: CSSProperties = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "280px",
-  height: "100vh",
-  background: "rgba(12, 21, 32, 0.95)",
-  borderRight: "1px solid rgba(255, 255, 255, 0.08)",
-  display: "flex",
-  flexDirection: "column",
-  padding: "24px 0",
-  zIndex: 100
-};
 
 const logoContainerStyle: CSSProperties = {
   padding: "0 24px 32px",
