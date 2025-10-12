@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
+import type { Route } from "next";
 
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const navItems = [
-    { href: "/", label: "アップロード", icon: "📤" },
-    { href: "/converter", label: "ローカル画像変換ツール", icon: "🔧" }
+  const navItems: Array<{ href: Route; label: string; icon: string }> = [
+    { href: "/" as Route, label: "アップロード", icon: "📤" },
+    { href: "/converter" as Route, label: "ローカル画像変換ツール", icon: "🔧" }
   ];
 
   return (
     <aside style={sidebarStyle}>
       <div style={logoContainerStyle}>
-        <Link href="/" style={logoLinkStyle}>
+        <Link href={"/" as Route} style={logoLinkStyle}>
           <img
             src="/logo.webp"
             alt="imgbase logo"
