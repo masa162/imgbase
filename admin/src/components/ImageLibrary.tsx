@@ -22,7 +22,7 @@ interface ImagesResponse {
   nextCursor: string | null;
 }
 
-const SHORT_URL_BASE = "https://img.be2nd.com";
+const SHORT_URL_BASE = "https://img.masa86.com";
 
 export default function ImageLibrary() {
   const [items, setItems] = useState<LibraryImage[]>([]);

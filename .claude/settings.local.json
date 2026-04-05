@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(node:*)",
-      "WebFetch(domain:admin.be2nd.com)",
+      "WebFetch(domain:admin.masa86.com)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git config:*)",
@@ -10,8 +10,8 @@
       "Bash(wrangler secret:*)",
       "Bash(wrangler pages deployment list:*)",
       "Read(//usr/bin/**)",
-      "Bash(export IMGBASE_SIGN_URL=\"https://img.be2nd.com/upload/sign\")",
-      "Bash(export IMGBASE_COMPLETE_URL=\"https://img.be2nd.com/upload/complete\")",
+      "Bash(export IMGBASE_SIGN_URL=\"https://img.masa86.com/upload/sign\")",
+      "Bash(export IMGBASE_COMPLETE_URL=\"https://img.masa86.com/upload/complete\")",
       "Bash(export IMGBASE_ADMIN_USER=\"admin\")",
       "Bash(export IMGBASE_ADMIN_PASS=\"imgbase2024\")",
       "Bash(export IMGBASE_TEST_FILE=\"sample.jpg\")",
