@@ -61,6 +61,7 @@ router.post(
     const objectKey = buildObjectKey(imageId, body.fileName);
     const expiresSeconds = Number.parseInt(env.UPLOAD_URL_EXPIRY_SECONDS ?? "900", 10) || 900;
 
+    const encodedFileName = encodeURIComponent(body.fileName);
     const uploadUrl = await signR2PutUrl({
       accountId: env.R2_ACCOUNT_ID,
       accessKeyId: env.R2_ACCESS_KEY_ID,
@@ -70,7 +71,7 @@ router.post(
       expiresIn: expiresSeconds,
       contentType: body.contentType,
       metadata: {
-        "original-filename": body.fileName
+        "original-filename": encodedFileName
       }
     });
 
@@ -95,7 +96,7 @@ router.post(
       expiresIn: expiresSeconds,
       headers: {
         "content-type": body.contentType,
-        "x-amz-meta-original-filename": body.fileName
+        "x-amz-meta-original-filename": encodedFileName
       }
     });
   })
@@ -106,7 +107,8 @@ router.post(
   "/upload/proxy",
   withAuth(async (request, env) => {
     const contentType = request.headers.get("content-type");
-    const fileName = request.headers.get("x-filename");
+    const rawFileName = request.headers.get("x-filename");
+    const fileName = rawFileName ? decodeURIComponent(rawFileName) : null;
 
     if (!contentType || !fileName) {
       return Response.json({ error: "Missing content-type or x-filename header" }, { status: 400 });
@@ -138,7 +140,7 @@ router.post(
           contentType: contentType
         },
         customMetadata: {
-          "original-filename": fileName
+          "original-filename": encodeURIComponent(fileName)
         }
       });
 
